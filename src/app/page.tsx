@@ -6,7 +6,7 @@ import EditorPanel from '@/components/EditorPanel';
 import { useEditorStore } from '@/store/editorStore';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export default function PageBuilder() {
   const { elements, selectedId, saveToServer } = useEditorStore();
@@ -29,7 +29,12 @@ export default function PageBuilder() {
               <Button>Save Page</Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader>Are you sure you want to save this page?</DialogHeader>
+              <DialogHeader>
+              <DialogTitle>Edit Page</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to save your changes to the page?
+              </DialogDescription>
+              </DialogHeader>
               <DialogFooter>
                 <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
                 <Button onClick={handleSave}>Confirm</Button>
