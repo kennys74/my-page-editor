@@ -2,66 +2,76 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware'
 import { v4 as uuidv4 } from 'uuid';
 
-export type ElementType = 'text' | 'button';
+export type ElementType = 'text' | 'button' | 'input';
 
-export interface EditorElement {
+export interface ElementProps {
+  [key: string]: any;
+}
+
+export interface PageElement {
   id: string;
   type: ElementType;
-  props: Record<string, string>;
+  props: ElementProps;
 }
 
-interface EditorStore {
-  elements: EditorElement[];
+interface EditorState {
+  elements: PageElement[];
   selectedId: string | null;
-  addElement: (type: ElementType) => void;
+  addElement: (type: ElementType, props?: ElementProps) => void;
   setSelectedId: (id: string | null) => void;
-  updateElement: (id: string, newProps: Record<string, string>) => void;
-  reorderElements: (activeId: string, overId: string) => void;
-  saveToServer: (pageName: string) => Promise<any>;
+  updateElement: (id: string, newProps: ElementProps) => void;
+  reorderElements: (from: number, to: number) => void;
+  saveToServer: (title: string) => Promise<void>;
 }
 
-export const useEditorStore = create<EditorStore>()(
+export const useEditorStore = create<EditorState>()(
   devtools(
     (set, get) => ({
       elements: [],
       selectedId: null,
-      addElement: (type) =>
+      addElement: (type, props = {}) => {
+        const defaultProps: Record<ElementType, ElementProps> = {
+          text: { text: 'Edit me' },
+          button: { label: 'Click me' },
+          input: { placeholder: 'Enter text...', value: '', multiline: false },
+        };
         set((state) => ({
           elements: [
             ...state.elements,
             {
               id: uuidv4(),
               type,
-              props: type === 'text' ? { text: 'Edit me' } : { label: 'Click me' },
+              props: { ...defaultProps[type], ...props },
             },
           ],
-        }), false, 'addElement'),
-      setSelectedId: (id) => set({ selectedId: id }, false, 'setSelectedId'),
+          selectedId: null,
+        }));
+      },
+      setSelectedId: (id) => set({ selectedId: id }),
       updateElement: (id, newProps) =>
         set((state) => ({
           elements: state.elements.map((el) =>
             el.id === id ? { ...el, props: { ...el.props, ...newProps } } : el
           ),
-        }), false, 'updateElement'),
-      reorderElements: (activeId, overId) =>
+        })),
+      reorderElements: (from, to) =>
         set((state) => {
-          const oldIndex = state.elements.findIndex((el) => el.id === activeId);
-          const newIndex = state.elements.findIndex((el) => el.id === overId);
-          if (oldIndex === -1 || newIndex === -1) return {};
           const updated = [...state.elements];
-          const [moved] = updated.splice(oldIndex, 1);
-          updated.splice(newIndex, 0, moved);
+          const [moved] = updated.splice(from, 1);
+          updated.splice(to, 0, moved);
           return { elements: updated };
-        }, false, 'reorderElements'),
-      saveToServer: async (pageName: string) => {
-        const res = await fetch('/api/pages', {
+        }),
+      saveToServer: async (title: string) => {
+        const pageData = {
+          title,
+          elements: get().elements,
+        };
+        await fetch('/api/save-page', {
           method: 'POST',
-          body: JSON.stringify({ name: pageName, elements: get().elements }),
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pageData),
         });
-        return res.json();
       },
     }),
-    { name: 'EditorStore' }
   )
 );
