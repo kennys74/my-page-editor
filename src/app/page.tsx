@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { CheckCircle } from 'lucide-react';
 
 
 export default function PageBuilder() {
@@ -17,7 +18,17 @@ export default function PageBuilder() {
   const handleSave = () => {
     saveToServer('My Page');
     setOpen(false);
-    toast.success('Page saved successfully');
+    toast.success('Page saved successfully', {
+      description: 'Your changes have been persisted.',
+      icon: <CheckCircle className="text-green-500" />,
+      duration: 4000,
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          // Optional: implement undo logic
+        },
+      },
+    });
   };
 
   return (
