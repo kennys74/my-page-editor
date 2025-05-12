@@ -7,6 +7,8 @@ import { useEditorStore } from '@/store/editorStore';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+
 
 export default function PageBuilder() {
   const { elements, selectedId, saveToServer } = useEditorStore();
@@ -15,6 +17,7 @@ export default function PageBuilder() {
   const handleSave = () => {
     saveToServer('My Page');
     setOpen(false);
+    toast.success('Page saved successfully');
   };
 
   return (
